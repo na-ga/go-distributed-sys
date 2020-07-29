@@ -1,20 +1,20 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"runtime"
 	"time"
 
-	stan "github.com/nats-io/go-nats-streaming"
-	"github.com/satori/go.uuid"
+	"github.com/nats-io/stan.go"
+	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc"
 
-	"github.com/shijuvar/go-distributed-sys/pb"
 	"github.com/shijuvar/go-distributed-sys/natsutil"
+	"github.com/shijuvar/go-distributed-sys/pb"
 	"github.com/shijuvar/go-distributed-sys/store"
-	"context"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -26,7 +26,7 @@ const (
 	event     = "order-approved"
 	aggregate = "order"
 
-	grpcUri   = "localhost:50051"
+	grpcUri = "localhost:50051"
 )
 
 func main() {
@@ -57,13 +57,13 @@ func main() {
 		}
 		// Handle the message
 		store := store.QueryStore{}
-		if err :=store.ChangeOrderStatus(paymentDebited.OrderId, "Approved"); err!=nil {
+		if err := store.ChangeOrderStatus(paymentDebited.OrderId, "Approved"); err != nil {
 			log.Println(err)
 			return
 		}
 		log.Printf("Order approved for Order ID: %s for Customer: %s\n", paymentDebited.OrderId, paymentDebited.CustomerId)
 		// Publish event to Event Store
-		if err:= createOrderApprovedCommand(paymentDebited.OrderId); err!=nil {
+		if err := createOrderApprovedCommand(paymentDebited.OrderId); err != nil {
 			log.Println("error occured while executing the OrderApproved command")
 		}
 
@@ -105,4 +105,3 @@ func createOrderApprovedCommand(orderId string) error {
 		return errors.Wrap(err, "error from RPC server")
 	}
 }
-

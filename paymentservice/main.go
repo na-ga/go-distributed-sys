@@ -1,31 +1,31 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"runtime"
 	"time"
-	"context"
 
-	stan "github.com/nats-io/go-nats-streaming"
-	"github.com/satori/go.uuid"
-	"google.golang.org/grpc"
+	"github.com/nats-io/stan.go"
 	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
+	"google.golang.org/grpc"
 
-	"github.com/shijuvar/go-distributed-sys/pb"
 	"github.com/shijuvar/go-distributed-sys/natsutil"
+	"github.com/shijuvar/go-distributed-sys/pb"
 )
 
 const (
-	clusterID = "test-cluster"
-	clientID  = "payment-service"
-	subscribeChannel   = "order-created"
-	durableID = "payment-service-durable"
+	clusterID        = "test-cluster"
+	clientID         = "payment-service"
+	subscribeChannel = "order-created"
+	durableID        = "payment-service-durable"
 
 	event     = "order-payment-debited"
 	aggregate = "order"
 
-	grpcUri   = "localhost:50051"
+	grpcUri = "localhost:50051"
 )
 
 func main() {
@@ -55,13 +55,13 @@ func main() {
 			return
 		}
 		// Create OrderPaymentDebitedCommand from Order
-		command := pb.OrderPaymentDebitedCommand {
-			OrderId: order.OrderId,
+		command := pb.OrderPaymentDebitedCommand{
+			OrderId:    order.OrderId,
 			CustomerId: order.CustomerId,
-			Amount: order.Amount,
+			Amount:     order.Amount,
 		}
 		log.Println("Payment has been debited from customer account for Order:", order.OrderId)
-		if err:= createPaymentDebitedCommand(command); err!=nil {
+		if err := createPaymentDebitedCommand(command); err != nil {
 			log.Println("error occured while executing the PaymentDebited command")
 		}
 	}, stan.DurableName(durableID),
